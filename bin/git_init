@@ -1,0 +1,30 @@
+#!/bin/sh
+
+if [ ! $# -eq 1 ]
+then
+  echo "Usage: $0 new_repo_name"
+  exit 1
+fi
+
+new_repo=$1
+
+echo "Creating new repository: $new_repo"
+
+
+mkdir $1
+cd $1
+git init
+
+echo "Creating a README file for initial commit/push"
+touch README
+git add README
+git commit -m 'Initial commit.'
+
+echo "Setting up link to github"
+git remote add github git@github.com:noahrichards/$1.git
+git config branch.master.remote github
+git config branch.master.merge refs/heads/master
+
+echo "Pushing and pulling"
+git push github master
+git pull
