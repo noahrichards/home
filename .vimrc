@@ -46,7 +46,7 @@ set cino=:0,g0,+0,:0
 set nolist
 
 " list trailing spaces as asterisks
-set listchars=tab:>-,trail:·,eol:$
+set listchars=tab:>-,trail:*,eol:$
 
 " Turn off smarttab
 set nosmarttab
