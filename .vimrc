@@ -30,10 +30,10 @@ set nocompatible
 set ignorecase
 set smartcase
 
-" When scrolling, keep 3 lines of context visible
-" (start scrolling when the caret is 3 lines away from the
+" When scrolling, keep 2 lines of context visible
+" (start scrolling when the caret is 2 lines away from the
 "  edge of the screen)
-set scrolloff=3
+set scrolloff=2
 
 " Incremental search + highlight matches
 set hlsearch
@@ -46,7 +46,7 @@ set cino=:0,g0,+0,:0
 set nolist
 
 " list trailing spaces as asterisks
-set listchars=tab:>-,trail:·,eol:$
+set listchars=tab:>-,trail:#,eol:$
 
 " Turn off smarttab
 set nosmarttab
@@ -90,6 +90,14 @@ set foldmethod=indent
 set foldlevel=2
 
 colo delek
+
+""" Other syntaxes
+" Vala
+autocmd BufRead *.vala set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
+autocmd BufRead *.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
+au BufRead,BufNewFile *.vala            setfiletype vala
+au BufRead,BufNewFile *.vapi            setfiletype vala
+let vala_comment_strings = 1
 
 """
 """ Key mappings {{{
@@ -142,8 +150,8 @@ map <leader>b :FuzzyFinderBuffer<CR>
 map <leader>f :FuzzyFinderFile<CR>
 
 " Moving between tabs
-noremap ^n :gt<CR>
-noremap ^p :gT<CR>
+noremap <C-n> gt<CR>
+noremap <C-p> gT<CR>
 
 " Opening new files
 if has("unix")
