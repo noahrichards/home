@@ -5,6 +5,12 @@ filetype plugin on
 filetype indent on
 set backspace=indent,eol,start
 
+" Restore file location when opening a file
+if has("autocmd")
+  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+    \| exe "normal! g'\"" | endif
+endif
+
 " Use , as the leader character instead of \
 let mapleader = ","
 
@@ -72,6 +78,32 @@ set softtabstop=4
 "" ...use tabs, though, for certain file types, like make
 autocmd FileType make   set noexpandtab
 
+"" Markdown
+au! BufRead,BufNewFile *.mkd,*.markdown setfiletype mkd | set ai formatoptions=tcroqn2 comments=n:>
+function! MarkdownCurrentFile()
+    let l:filename = getreg("%")
+    call MarkdownFile(l:filename)
+endfunction
+
+function! MarkdownFile(filename)
+    let l:htmlname = fnamemodify(a:filename, ":r") . ".html"
+    silent exec "!Markdown " . a:filename . " > " l:htmlname
+    redraw!
+    echo "Wrote " . l:htmlname
+endfunction
+
+function! MarkdownCurrentDirectory()
+    let l:mkdfiles = split(glob("*.mkd"), "\n")
+    for l:file in l:mkdfiles
+        call MarkdownFile(l:file)
+    endfor
+endfunction
+
+nmap <leader>m :call MarkdownCurrentFile()<CR>
+nmap <leader>M :call MarkdownCurrentDirectory()<CR>
+
+
+
 " For FuzzyFinder
 let g:fuzzy_ceiling= 50000
 let g:fuzzy_ignore = "objc/*, obj1c/*, objr/*, obj1r/*, .git/*"
@@ -93,10 +125,8 @@ colo delek
 
 """ Other syntaxes
 " Vala
-autocmd BufRead *.vala set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
-autocmd BufRead *.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
-au BufRead,BufNewFile *.vala            setfiletype vala
-au BufRead,BufNewFile *.vapi            setfiletype vala
+autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
+au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
 let vala_comment_strings = 1
 
 """

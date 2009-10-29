@@ -26,3 +26,12 @@ bind "set completion-ignore-case on"
 export PATH=$PATH:~/bin
 
 test -r /sw/bin/init.sh && . /sw/bin/init.sh
+
+##
+# Your previous /Users/noah/.bash_profile file was backed up as /Users/noah/.bash_profile.macports-saved_2009-09-27_at_13:14:59
+##
+
+# MacPorts Installer addition on 2009-09-27_at_13:14:59: adding an appropriate PATH variable for use with MacPorts.
+export PATH=/opt/local/bin:/opt/local/sbin:$PATH
+# Finished adapting your PATH environment variable for use with MacPorts.
+
