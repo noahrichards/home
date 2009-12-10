@@ -1,6 +1,9 @@
 # Git completion, from git/contrib/completion
 source .git-completion.bash
 
+# Alias git to "hub", the github-happy version!
+alias git='hub'
+
 GIT_PS1_SHOWDIRTYSTATE='yesplz'
 
 # Set the (color) term to user@host:dir
