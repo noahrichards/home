@@ -71,9 +71,9 @@ set showbreak=+
 
 "" Use spaces instead of tabs
 set expandtab
-set shiftwidth=4
-set tabstop=4
-set softtabstop=4
+set shiftwidth=2
+set tabstop=2
+set softtabstop=2
 
 "" ...use tabs, though, for certain file types, like make
 autocmd FileType make   set noexpandtab
@@ -120,7 +120,7 @@ set guioptions-=b
 " Also, set the foldlevel a bit higher, so some toplevel
 " folds are open by default
 set foldmethod=indent
-set foldlevel=2
+set foldlevel=100
 
 colo delek
 
