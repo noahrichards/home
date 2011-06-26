@@ -71,23 +71,24 @@ set showbreak=+
 
 "" Use spaces instead of tabs
 set expandtab
-set shiftwidth=4
-set tabstop=4
-set softtabstop=4
+set shiftwidth=2
+set tabstop=2
+set softtabstop=2
 
 "" ...use tabs, though, for certain file types, like make
 autocmd FileType make   set noexpandtab
 
 "" Markdown
-au! BufRead,BufNewFile *.mkd,*.markdown setfiletype mkd | set ai formatoptions=tcroqn2 comments=n:>
+
 function! MarkdownCurrentFile()
     let l:filename = getreg("%")
     call MarkdownFile(l:filename)
 endfunction
 
 function! MarkdownFile(filename)
-    let l:htmlname = fnamemodify(a:filename, ":r") . ".html"
+    let l:htmlname = "html/" . fnamemodify(a:filename, ":r") . ".html"
     silent exec "!Markdown " . a:filename . " > " l:htmlname
+    silent exec "!open " . l:htmlname
     redraw!
     echo "Wrote " . l:htmlname
 endfunction
@@ -119,7 +120,7 @@ set guioptions-=b
 " Also, set the foldlevel a bit higher, so some toplevel
 " folds are open by default
 set foldmethod=indent
-set foldlevel=2
+set foldlevel=100
 
 colo delek
 
@@ -138,10 +139,16 @@ nmap <silent> <leader>n :silent :nohlsearch<CR>
 "
 " Per-system clipboard settings
 "
-if has("mac")
-    vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
-    nmap <C-v> :call setreg("\"",system("pbpaste"))<CR>p
-elseif has("msdos")
+
+"" Annoying hack:
+"" Looks like the default version of vim on os x reports has("unix") but not
+"" has("mac") or has("macunix").  As such, set the mac stuff by default, and
+"" overwrite it if has("msdos")
+
+vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
+nmap <C-v> :call setreg("\"",system("pbpaste"))<CR>p
+
+if has("msdos")
     " msdos {{{
     " backspace in Visual mode deletes selection
     vnoremap <BS> d
@@ -194,6 +201,7 @@ endif
 map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
 
 " ,s to turn on/off show whitespace
-nmap <silent> <leader>s :set nolist!<CR>
+nmap <silent> <leader>w :set nolist!<CR>
+nmap <silent> <leader>s :setlocal spell spelllang=en_us<CR>
 
 """ }}}
