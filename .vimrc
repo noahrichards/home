@@ -1,3 +1,6 @@
+" Start with some pathogen, please!
+call pathogen#runtime_append_all_bundles()
+
 " The obvious ones
 syntax on
 filetype on
@@ -103,14 +106,10 @@ endfunction
 nmap <leader>m :call MarkdownCurrentFile()<CR>
 nmap <leader>M :call MarkdownCurrentDirectory()<CR>
 
-
-
-" For FuzzyFinder
-let g:fuzzy_ceiling= 50000
-let g:fuzzy_ignore = "objc/*, obj1c/*, objr/*, obj1r/*, .git/*"
-let g:fuzzy_matching_limit = 70
-
+" Turn on the lower ruler (mode, cursor position, file percentage)
 set ruler
+
+" Hide most of the gui schtuff (in MacVim or gvim)
 set guioptions-=T
 set guioptions-=m
 set guioptions-=r
@@ -122,16 +121,7 @@ set guioptions-=b
 set foldmethod=indent
 set foldlevel=100
 
-colo delek
-
-""" Other syntaxes
-" Vala
-autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
-au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
-let vala_comment_strings = 1
-
-"""
-""" Key mappings {{{
+"colo delek
 
 " To get rid of the highlights
 nmap <silent> <leader>n :silent :nohlsearch<CR>
@@ -140,68 +130,61 @@ nmap <silent> <leader>n :silent :nohlsearch<CR>
 " Per-system clipboard settings
 "
 
-"" Annoying hack:
-"" Looks like the default version of vim on os x reports has("unix") but not
-"" has("mac") or has("macunix").  As such, set the mac stuff by default, and
-"" overwrite it if has("msdos")
-
-vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
-nmap <C-v> :call setreg("\"",system("pbpaste"))<CR>p
-
-if has("msdos")
-    " msdos {{{
-    " backspace in Visual mode deletes selection
-    vnoremap <BS> d
-
-    " CTRL-X and SHIFT-Del are Cut
-    vnoremap <C-X> "+x
-    vnoremap <S-Del> "+x
-
-    " CTRL-C and CTRL-Insert are Copy
-    vnoremap <C-C> "+y
-    vnoremap <C-Insert> "+y
-
-    " CTRL-V and SHIFT-Insert are Paste
-    map <C-V>		"+gP
-    map <S-Insert>		"+gP
-
-    cmap <C-V>		<C-R>+
-    cmap <S-Insert>		<C-R>+
-
-    " Pasting blockwise and linewise selections is not possible in Insert and
-    " Visual mode without the +virtualedit feature.  They are pasted as if they
-    " were characterwise instead.
-    " Uses the paste.vim autoload script.
-
-    exe 'inoremap <script> <C-V>' paste#paste_cmd['i']
-    exe 'vnoremap <script> <C-V>' paste#paste_cmd['v']
-    
+" Mac/Linux settings
+if has("unix")
+  let s:uname = system("uname")
+  if s:uname == "Darwin\n"
+    " Mac uses pbcopy/pbpaste, no quote buffer here.
+    vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
+    nmap <C-v> :call setreg("\"",system("pbpaste"))<CR>p
+  else
+    " ctrl-x/c/v for cut/copy/paste
+    vnoremap <C-x> "+x
+    vnoremap <C-c> "+y
+    map <C-v> "+gP
     " Use CTRL-Q to do what CTRL-V used to do
-    noremap <C-Q>		<C-V>
-    " }}} msdos
+    noremap <C-Q> <C-V>
+  endif
+elseif has("msdos")
+  " backspace in Visual mode deletes selection
+  vnoremap <BS> d
+
+  " CTRL-X and SHIFT-Del are Cut
+  vnoremap <C-X> "+x
+  vnoremap <S-Del> "+x
+
+  " CTRL-C and CTRL-Insert are Copy
+  vnoremap <C-C> "+y
+  vnoremap <C-Insert> "+y
+
+  " CTRL-V and SHIFT-Insert are Paste
+  map <C-V>		"+gP
+  map <S-Insert>		"+gP
+
+  cmap <C-V>		<C-R>+
+  cmap <S-Insert>		<C-R>+
+
+  " Pasting blockwise and linewise selections is not possible in Insert and
+  " Visual mode without the +virtualedit feature.  They are pasted as if they
+  " were characterwise instead.
+  " Uses the paste.vim autoload script.
+  exe 'inoremap <script> <C-V>' paste#paste_cmd['i']
+  exe 'vnoremap <script> <C-V>' paste#paste_cmd['v']
+  
+  " Use CTRL-Q to do what CTRL-V used to do
+  noremap <C-Q>		<C-V>
 endif
-
-" FuzzyFinder
-map <leader>t :FuzzyFinderTextMate<CR>
-map <leader>b :FuzzyFinderBuffer<CR>
-map <leader>f :FuzzyFinderFile<CR>
-
-" Moving between tabs
-noremap <C-n> gt<CR>
-noremap <C-p> gT<CR>
 
 " Opening new files
 if has("unix")
-    map <leader>e :tabe <C-R>=expand("%:p:h") . "/" <CR>
+  map <leader>e :tabe <C-R>=expand("%:p:h") . "/" <CR>
 else
-    map <leader>e :tabe <C-R>=expand("%:p:h") . "\\" <CR>
+  map <leader>e :tabe <C-R>=expand("%:p:h") . "\\" <CR>
 endif
 
 " For NERD tree
 map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
 
 " ,s to turn on/off show whitespace
-nmap <silent> <leader>w :set nolist!<CR>
-nmap <silent> <leader>s :setlocal spell spelllang=en_us<CR>
-
-""" }}}
+nmap <silent> <leader>s :set nolist!<CR>
+nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
