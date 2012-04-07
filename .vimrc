@@ -123,7 +123,7 @@ set foldlevel=100
 
 "colo delek
 
-" To get rid of the highlights
+" To get rid of highlights
 nmap <silent> <leader>n :silent :nohlsearch<CR>
 
 "
@@ -142,8 +142,6 @@ if has("unix")
     vnoremap <C-x> "+x
     vnoremap <C-c> "+y
     map <C-v> "+gP
-    " Use CTRL-Q to do what CTRL-V used to do
-    noremap <C-Q> <C-V>
   endif
 elseif has("msdos")
   " backspace in Visual mode deletes selection
@@ -188,3 +186,7 @@ map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
 " ,s to turn on/off show whitespace
 nmap <silent> <leader>s :set nolist!<CR>
 nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
+
+" Ignore annoying typos
+command! Q q
+command! Wq wq
