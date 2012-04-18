@@ -1,6 +1,19 @@
 " Start with some pathogen, please!
 call pathogen#infect()
 
+" Check for mac, which is unix + uname returns "Darwin"
+let s:system = "unknown"
+if has("unix")
+  let s:uname = system("uname")
+  if s:uname == "Darwin\n"
+    let s:system = "mac"
+  endif
+endif
+
+"""""""""""""""""""""""""""""""""""
+""" Global Settings
+"""""""""""""""""""""""""""""""""""
+
 " The obvious ones
 syntax on
 filetype on
@@ -72,32 +85,56 @@ set showmatch
 set linebreak
 set showbreak=+
 
-" Use spaces instead of tabs
+" Use spaces instead of tabs, except for make files
 set expandtab
 set shiftwidth=2
 set tabstop=2
 set softtabstop=2
-
-" Default textwidth is 80, in all languages
-set textwidth=80
-
-" But let vimrc be a bit wider
-autocmd BufNewFile,BufRead *.vimrc setlocal textwidth=120
-
-" Check for mac, which is unix + uname returns "Darwin"
-let s:system = "unknown"
-if has("unix")
-  let s:uname = system("uname")
-  if s:uname == "Darwin\n"
-    let s:system = "mac"
-  endif
-endif
-
-"" ...use tabs, though, for certain file types, like make
 autocmd FileType make set noexpandtab
 
-"" Markdown
+" Default textwidth is 80, but let some be a bit wider
+set textwidth=80
+autocmd BufNewFile,BufRead *.vimrc setlocal textwidth=120
+
+" Turn on the lower ruler (mode, cursor position, file percentage)
+set ruler
+
+" Hide most of the gui schtuff (in MacVim or gvim)
+set guioptions-=T
+set guioptions-=m
+set guioptions-=r
+set guioptions-=b
+
+" Folding off
+set foldmethod=indent
+set foldlevel=100
+
+" Make quickfix use existing tabs or open new tabs, instead of using the same
+" window.
+set switchbuf=usetab,newtab
+
+" For FuzzyFinder
+let g:fuzzy_ceiling= 50000
+let g:fuzzy_ignore = "objc/*, obj1c/*, objr/*, obj1r/*, .git/*"
+let g:fuzzy_matching_limit = 70
+" Flip open and open-in-tab for fuzzy finder
+let g:fuf_keyOpen = '<C-l>'
+let g:fuf_keyOpenTabpage = '<CR>'
+
+"""""""""""""""""""""""""""""""""""
+""" Filetype-specific settings
+"""""""""""""""""""""""""""""""""""
 au! BufRead,BufNewFile *.mkd,*.markdown setfiletype mkd | set ai formatoptions=tcroqn2 comments=n:>
+
+autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
+au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
+let vala_comment_strings = 1
+
+"""""""""""""""""""""""""""""""""""
+""" Helpful functions
+"""""""""""""""""""""""""""""""""""
+
+"" Markdown
 function! MarkdownCurrentFile()
     let l:filename = getreg("%")
     call MarkdownFile(l:filename)
@@ -120,39 +157,21 @@ function! MarkdownCurrentDirectory()
     endfor
 endfunction
 
-" For FuzzyFinder
-let g:fuzzy_ceiling= 50000
-let g:fuzzy_ignore = "objc/*, obj1c/*, objr/*, obj1r/*, .git/*"
-let g:fuzzy_matching_limit = 70
-" Flip open and open-in-tab for fuzzy finder
-let g:fuf_keyOpen = '<C-l>'
-let g:fuf_keyOpenTabpage = '<CR>'
+"" Open .cc, .h., and _unittest.cc of the current cpp file
+function! GoToRelatedFile(extension)
+  let l:filename = expand("%:r")
+  if (l:filename =~ "_unittest$")
+    let l:file = substitute(l:filename, "_unittest$", "", "") . a:extension
+  else
+    let l:file = l:filename . a:extension
+  endif
+  " TODO: Switch to existing tab, if one is open
+  exec "tabe " . l:file
+endfunction
 
-" Turn on the lower ruler (mode, cursor position, file percentage)
-set ruler
-
-" Hide most of the gui schtuff (in MacVim or gvim)
-set guioptions-=T
-set guioptions-=m
-set guioptions-=r
-set guioptions-=b
-
-" Folding
-" Also, set the foldlevel a bit higher, so some toplevel
-" folds are open by default
-set foldmethod=indent
-set foldlevel=100
-
-""" Other syntaxes
-" Vala
-autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
-au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
-let vala_comment_strings = 1
-
-"
-" Per-system clipboard settings
-"
-
+"""""""""""""""""""""""""""""""""""
+""" Per-system clipboard settings
+"""""""""""""""""""""""""""""""""""
 if s:system == "mac"
   " Mac uses pbcopy/pbpaste, no quote buffer here.
   vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
@@ -177,6 +196,10 @@ else " windows and unix are identical
   noremap <C-Q> <C-V>
 endif
 
+"""""""""""""""""""""""""""""""""""
+""" Whitespace and line-length
+"""""""""""""""""""""""""""""""""""
+
 " Highlight lines that are too long (over textwidth in length)
 function! HighlightTooLongLines()
   highlight def link RightMargin Error
@@ -186,12 +209,6 @@ function! HighlightTooLongLines()
 endfunction
 au BufEnter * call HighlightTooLongLines()
 
-" For NERD tree
-map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
-
-" ,s to turn on/off show whitespace
-nmap <silent> <leader>s :set nolist!<CR>
-nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
 
 " Highlight trailing whitespace in red and strip it on buffer write.
 highlight ExtraWhitespace ctermbg=red guibg=red
@@ -202,6 +219,7 @@ autocmd InsertLeave * call matchdelete(b:wsmatch) |
       \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
 autocmd BufWinLeave * call matchdelete(b:wsmatch)
 
+" Strip trailing whitespace on save
 fun! <SID>StripTrailingWhitespaces()
     let l = line(".")
     let c = col(".")
@@ -210,14 +228,14 @@ fun! <SID>StripTrailingWhitespaces()
 endfun
 autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 
-"""
-""" <leader> shortcuts
-"""
+"""""""""""""""""""""""""""""""""""
+""" Keybindings (<leader> shortcuts)
+"""""""""""""""""""""""""""""""""""
+
 map <leader>b :FufBuffer<CR>
 map <leader>f :FufFile<CR>
 map <leader>F :FufFileWithCurrentBufferDir<CR>
 nmap <silent> <leader>n :silent :nohlsearch<CR>
-" For NERD tree
 map <leader>n :execute 'NERDTreeToggle ' . getcwd()<CR>
 " ,s to turn on/off show whitespace
 nmap <silent> <leader>s :set nolist!<CR>
@@ -230,23 +248,9 @@ endif
 nmap <leader>m :call MarkdownCurrentFile()<CR>
 nmap <leader>M :call MarkdownCurrentDirectory()<CR>
 nmap <leader>t :TagbarToggle<CR>
+nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
 
-" To get rid of highlights
-nmap <silent> <leader>n :silent :nohlsearch<CR>
-
-" Find .cc, .h., and _unittest.cc of the current file
-function! GoToRelatedFile(extension)
-  let l:filename = expand("%:r")
-  if (l:filename =~ "_unittest$")
-    let l:file = substitute(l:filename, "_unittest$", "", "") . a:extension
-  else
-    let l:file = l:filename . a:extension
-  endif
-  " TODO: Switch to existing tab, if one is open
-  exec "tabe " . l:file
-endfunction
-
-" Map these only for c/c++
+" GoToRelatedFile for cpp files
 autocmd FileType cpp nnoremap <leader>h :call GoToRelatedFile(".h")<CR>
 autocmd FileType cpp nnoremap <leader>c :call GoToRelatedFile(".cc")<CR>
 autocmd FileType cpp nnoremap <leader>u :call GoToRelatedFile("_unittest.cc")<CR>
@@ -255,11 +259,9 @@ autocmd FileType cpp nnoremap <leader>u :call GoToRelatedFile("_unittest.cc")<CR
 command! Q q
 command! Wq wq
 
-" Make quickfix use existing tabs or open new tabs, instead of using the same
-" window.
-set switchbuf=usetab,newtab
-
-" Check for machine-specific .vimrc overrides
+"""""""""""""""""""""""""""""""""""
+""" Load machine-specific config
+"""""""""""""""""""""""""""""""""""
 if filereadable($HOME.'/.vimrc-machine')
   source $HOME/.vimrc-machine
 endif
