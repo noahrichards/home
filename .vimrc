@@ -72,11 +72,14 @@ set showmatch
 set linebreak
 set showbreak=+
 
-"" Use spaces instead of tabs
+" Use spaces instead of tabs
 set expandtab
 set shiftwidth=2
 set tabstop=2
 set softtabstop=2
+
+" Default textwidth is 80, in all languages
+set textwidth=80
 
 "" ...use tabs, though, for certain file types, like make
 autocmd FileType make set noexpandtab
@@ -130,37 +133,25 @@ nmap <silent> <leader>n :silent :nohlsearch<CR>
 " Per-system clipboard settings
 "
 
-" Mac/Linux settings
+" Check for mac, which is unix + uname returns "Darwin"
+let s:system = "unknown"
 if has("unix")
   let s:uname = system("uname")
   if s:uname == "Darwin\n"
-    " Mac uses pbcopy/pbpaste, no quote buffer here.
-    vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
-    nmap <C-v> :call setreg("\"",system("pbpaste"))<CR>p
-  else
-    " ctrl-x/c/v for cut/copy/paste
-    vnoremap <C-x> "+x
-    vnoremap <C-c> "+y
-    map <C-v> "+gP
+    let s:system = "mac"
   endif
-elseif has("msdos")
+endif
+
+if s:system == "mac"
+  " Mac uses pbcopy/pbpaste, no quote buffer here.
+  vmap <C-c> y:call system("pbcopy", getreg("\""))<CR>
+  nmap <C-v> :call setreg("\"",system("pbpaste"))<CR>p
+else " windows and unix are identical
   " backspace in Visual mode deletes selection
-  vnoremap <BS> d
-
-  " CTRL-X and SHIFT-Del are Cut
   vnoremap <C-X> "+x
-  vnoremap <S-Del> "+x
-
-  " CTRL-C and CTRL-Insert are Copy
   vnoremap <C-C> "+y
-  vnoremap <C-Insert> "+y
-
-  " CTRL-V and SHIFT-Insert are Paste
-  map <C-V>		"+gP
-  map <S-Insert>		"+gP
-
-  cmap <C-V>		<C-R>+
-  cmap <S-Insert>		<C-R>+
+  map <C-V>      "+gP
+  cmap <C-V>     <C-R>+
 
   " Pasting blockwise and linewise selections is not possible in Insert and
   " Visual mode without the +virtualedit feature.  They are pasted as if they
@@ -168,9 +159,11 @@ elseif has("msdos")
   " Uses the paste.vim autoload script.
   exe 'inoremap <script> <C-V>' paste#paste_cmd['i']
   exe 'vnoremap <script> <C-V>' paste#paste_cmd['v']
-  
-  " Use CTRL-Q to do what CTRL-V used to do
-  noremap <C-Q>		<C-V>
+
+  " Use ctrl-q/ctrl-e to do what ctrl-v used to do
+  " (ctrl-q is reserved in linux terms)
+  noremap <C-E> <C-V>
+  noremap <C-Q> <C-V>
 endif
 
 " Opening new files
@@ -231,7 +224,12 @@ autocmd FileType cpp nnoremap <leader>u :call GoToRelatedFile("_unittest.cc")<CR
 command! Q q
 command! Wq wq
 
-" Make quickfix use existing tabs or open new tabs, instead of using the same 
+" Make quickfix use existing tabs or open new tabs, instead of using the same
 " window.
 set switchbuf=usetab,newtab
+
+" Check for machine-specific .vimrc overrides
+if filereadable($HOME.'/.vimrc-machine')
+  source $HOME.'/.vimrc-machine'
+endif
 
