@@ -4,7 +4,7 @@ if [ -f /etc/bashrc ]; then
 fi
 
 # Git completion, from git/contrib/completion
-source .git-completion.bash
+source ~/.git-completion.bash
 
 EDITOR="vim"
 VISUAL="vim"
@@ -33,7 +33,7 @@ bind "set show-all-if-ambiguous on"
 # Ignore case on completion matches
 bind "set completion-ignore-case on"
 
-export PATH=$PATH:~/bin
+export PATH=/usr/local/bin:$PATH:~/bin:/usr/local/sbin
 
 # Temporary: add msp430 binutils/gcc to path
 export PATH=$PATH:/opt/msp430-gcc-4.4.5/bin
