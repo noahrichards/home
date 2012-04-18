@@ -187,6 +187,46 @@ map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
 nmap <silent> <leader>s :set nolist!<CR>
 nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
 
+" Highlight trailing whitespace in red and strip it on buffer write.
+highlight ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
+autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
+autocmd InsertLeave * match ExtraWhitespace /\s\+$/
+autocmd BufWinLeave * call clearmatches()
+
+fun! <SID>StripTrailingWhitespaces()
+    let l = line(".")
+    let c = col(".")
+    %s/\s\+$//e
+    call cursor(l, c)
+endfun
+autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
+
+" Opening new files
+if has("unix")
+  map <leader>o :tabe <C-R>=simplify(expand("%:h") . "/") <CR>
+else
+  map <leader>o :tabe <C-R>=simplify(expand("%:h") . "\\") <CR>
+endif
+
+" Find .cc, .h., and _unittest.cc of the current file
+function! GoToRelatedFile(extension)
+  let l:filename = expand("%:r")
+  if (l:filename =~ "_unittest$")
+    let l:file = substitute(l:filename, "_unittest$", "", "") . a:extension
+  else
+    let l:file = l:filename . a:extension
+  endif
+  " TODO: Switch to existing tab, if one is open
+  exec "tabe " . l:file
+endfunction
+
+" Map these only for c/c++
+autocmd FileType cpp nnoremap <leader>h :call GoToRelatedFile(".h")<CR>
+autocmd FileType cpp nnoremap <leader>c :call GoToRelatedFile(".cc")<CR>
+autocmd FileType cpp nnoremap <leader>u :call GoToRelatedFile("_unittest.cc")<CR>
+
 " Ignore annoying typos
 command! Q q
 command! Wq wq
