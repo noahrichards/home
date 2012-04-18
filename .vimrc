@@ -81,11 +81,23 @@ set softtabstop=2
 " Default textwidth is 80, in all languages
 set textwidth=80
 
+" But let vimrc be a bit wider
+autocmd BufNewFile,BufRead *.vimrc setlocal textwidth=120
+
+" Check for mac, which is unix + uname returns "Darwin"
+let s:system = "unknown"
+if has("unix")
+  let s:uname = system("uname")
+  if s:uname == "Darwin\n"
+    let s:system = "mac"
+  endif
+endif
+
 "" ...use tabs, though, for certain file types, like make
 autocmd FileType make set noexpandtab
 
 "" Markdown
-
+au! BufRead,BufNewFile *.mkd,*.markdown setfiletype mkd | set ai formatoptions=tcroqn2 comments=n:>
 function! MarkdownCurrentFile()
     let l:filename = getreg("%")
     call MarkdownFile(l:filename)
@@ -94,7 +106,9 @@ endfunction
 function! MarkdownFile(filename)
     let l:htmlname = "html/" . fnamemodify(a:filename, ":r") . ".html"
     silent exec "!Markdown " . a:filename . " > " l:htmlname
-    silent exec "!open " . l:htmlname
+    if s:system == "mac"
+      silent exec "!open " . l:htmlname
+    endif
     redraw!
     echo "Wrote " . l:htmlname
 endfunction
@@ -106,8 +120,13 @@ function! MarkdownCurrentDirectory()
     endfor
 endfunction
 
-nmap <leader>m :call MarkdownCurrentFile()<CR>
-nmap <leader>M :call MarkdownCurrentDirectory()<CR>
+" For FuzzyFinder
+let g:fuzzy_ceiling= 50000
+let g:fuzzy_ignore = "objc/*, obj1c/*, objr/*, obj1r/*, .git/*"
+let g:fuzzy_matching_limit = 70
+" Flip open and open-in-tab for fuzzy finder
+let g:fuf_keyOpen = '<C-l>'
+let g:fuf_keyOpenTabpage = '<CR>'
 
 " Turn on the lower ruler (mode, cursor position, file percentage)
 set ruler
@@ -124,23 +143,15 @@ set guioptions-=b
 set foldmethod=indent
 set foldlevel=100
 
-"colo delek
-
-" To get rid of highlights
-nmap <silent> <leader>n :silent :nohlsearch<CR>
+""" Other syntaxes
+" Vala
+autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
+au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
+let vala_comment_strings = 1
 
 "
 " Per-system clipboard settings
 "
-
-" Check for mac, which is unix + uname returns "Darwin"
-let s:system = "unknown"
-if has("unix")
-  let s:uname = system("uname")
-  if s:uname == "Darwin\n"
-    let s:system = "mac"
-  endif
-endif
 
 if s:system == "mac"
   " Mac uses pbcopy/pbpaste, no quote buffer here.
@@ -166,12 +177,14 @@ else " windows and unix are identical
   noremap <C-Q> <C-V>
 endif
 
-" Opening new files
-if has("unix")
-  map <leader>e :tabe <C-R>=expand("%:p:h") . "/" <CR>
-else
-  map <leader>e :tabe <C-R>=expand("%:p:h") . "\\" <CR>
-endif
+" Highlight lines that are too long (over textwidth in length)
+function! HighlightTooLongLines()
+  highlight def link RightMargin Error
+  if &textwidth != 0
+    let longlines = matchadd('RightMargin', '\%>'.&textwidth.'v.\+')
+  endif
+endfunction
+au BufEnter * call HighlightTooLongLines()
 
 " For NERD tree
 map <leader>d :execute 'NERDTreeToggle ' . getcwd()<CR>
@@ -197,24 +210,29 @@ fun! <SID>StripTrailingWhitespaces()
 endfun
 autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 
-" Highlight lines that are too long (over textwidth in length)
-function! HighlightTooLongLines()
-  highlight def link RightMargin Error
-  if &textwidth != 0
-    let longlines = matchadd('RightMargin', '\%>'.&textwidth.'v.\+')
-  endif
-endfunction
-au BufEnter * call HighlightTooLongLines()
-
-" But let vimrc be a bit wider
-autocmd BufNewFile,BufRead *.vimrc setlocal textwidth=120
-
+"""
+""" <leader> shortcuts
+"""
+map <leader>b :FufBuffer<CR>
+map <leader>f :FufFile<CR>
+map <leader>F :FufFileWithCurrentBufferDir<CR>
+nmap <silent> <leader>n :silent :nohlsearch<CR>
+" For NERD tree
+map <leader>n :execute 'NERDTreeToggle ' . getcwd()<CR>
+" ,s to turn on/off show whitespace
+nmap <silent> <leader>s :set nolist!<CR>
 " Opening new files
 if has("unix")
   map <leader>o :tabe <C-R>=simplify(expand("%:h") . "/") <CR>
 else
   map <leader>o :tabe <C-R>=simplify(expand("%:h") . "\\") <CR>
 endif
+nmap <leader>m :call MarkdownCurrentFile()<CR>
+nmap <leader>M :call MarkdownCurrentDirectory()<CR>
+nmap <leader>t :TagbarToggle<CR>
+
+" To get rid of highlights
+nmap <silent> <leader>n :silent :nohlsearch<CR>
 
 " Find .cc, .h., and _unittest.cc of the current file
 function! GoToRelatedFile(extension)
@@ -243,6 +261,6 @@ set switchbuf=usetab,newtab
 
 " Check for machine-specific .vimrc overrides
 if filereadable($HOME.'/.vimrc-machine')
-  source $HOME.'/.vimrc-machine'
+  source $HOME/.vimrc-machine
 endif
 
