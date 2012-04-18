@@ -182,11 +182,12 @@ nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
 
 " Highlight trailing whitespace in red and strip it on buffer write.
 highlight ExtraWhitespace ctermbg=red guibg=red
-match ExtraWhitespace /\s\+$/
-autocmd BufWinEnter * match ExtraWhitespace /\s\+$/
-autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
-autocmd InsertLeave * match ExtraWhitespace /\s\+$/
-autocmd BufWinLeave * call clearmatches()
+autocmd BufWinEnter * let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
+autocmd InsertEnter * call matchdelete(b:wsmatch) |
+      \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+\%#\@<!$')
+autocmd InsertLeave * call matchdelete(b:wsmatch) |
+      \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
+autocmd BufWinLeave * call matchdelete(b:wsmatch)
 
 fun! <SID>StripTrailingWhitespaces()
     let l = line(".")
@@ -195,6 +196,18 @@ fun! <SID>StripTrailingWhitespaces()
     call cursor(l, c)
 endfun
 autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
+
+" Highlight lines that are too long (over textwidth in length)
+function! HighlightTooLongLines()
+  highlight def link RightMargin Error
+  if &textwidth != 0
+    let longlines = matchadd('RightMargin', '\%>'.&textwidth.'v.\+')
+  endif
+endfunction
+au BufEnter * call HighlightTooLongLines()
+
+" But let vimrc be a bit wider
+autocmd BufNewFile,BufRead *.vimrc setlocal textwidth=120
 
 " Opening new files
 if has("unix")
