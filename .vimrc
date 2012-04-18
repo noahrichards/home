@@ -1,5 +1,5 @@
 " Start with some pathogen, please!
-call pathogen#runtime_append_all_bundles()
+call pathogen#infect()
 
 " The obvious ones
 syntax on
@@ -79,7 +79,7 @@ set tabstop=2
 set softtabstop=2
 
 "" ...use tabs, though, for certain file types, like make
-autocmd FileType make   set noexpandtab
+autocmd FileType make set noexpandtab
 
 "" Markdown
 
@@ -190,3 +190,8 @@ nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
 " Ignore annoying typos
 command! Q q
 command! Wq wq
+
+" Make quickfix use existing tabs or open new tabs, instead of using the same 
+" window.
+set switchbuf=usetab,newtab
+
