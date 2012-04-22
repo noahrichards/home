@@ -130,6 +130,9 @@ autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
 au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
 let vala_comment_strings = 1
 
+" Turn on spell checking for text files by default.
+autocmd BufRead,BufNewFile *.txt,*.text setlocal spell spelllang=en_us
+
 """""""""""""""""""""""""""""""""""
 """ Helpful functions
 """""""""""""""""""""""""""""""""""
