@@ -209,15 +209,14 @@ function! HighlightTooLongLines()
 endfunction
 au BufEnter * call HighlightTooLongLines()
 
-
 " Highlight trailing whitespace in red and strip it on buffer write.
 highlight ExtraWhitespace ctermbg=red guibg=red
+autocmd ColorScheme * highlight ExtraWhitespace ctermbg=red guibg=red
 autocmd BufWinEnter * let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
 autocmd InsertEnter * call matchdelete(b:wsmatch) |
       \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+\%#\@<!$')
 autocmd InsertLeave * call matchdelete(b:wsmatch) |
       \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
-autocmd BufWinLeave * call matchdelete(b:wsmatch)
 
 " Strip trailing whitespace on save
 fun! <SID>StripTrailingWhitespaces()
