@@ -1,4 +1,7 @@
-" Start with some pathogen, please!
+" First, clear all autocommands, in case this file is sourced twice
+autocmd!
+
+" Pathogen, front and center
 call pathogen#infect()
 
 " Check for mac, which is unix + uname returns "Darwin"
@@ -23,8 +26,8 @@ set backspace=indent,eol,start
 
 " Restore file location when opening a file
 if has("autocmd")
-  au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
-    \| exe "normal! g'\"" | endif
+  autocmd BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$")
+    \| exec "normal! g'\"" | endif
 endif
 
 " Use , as the leader character instead of \
@@ -124,10 +127,11 @@ let g:fuf_keyOpenTabpage = '<CR>'
 """""""""""""""""""""""""""""""""""
 """ Filetype-specific settings
 """""""""""""""""""""""""""""""""""
-au! BufRead,BufNewFile *.mkd,*.markdown setfiletype mkd | set ai formatoptions=tcroqn2 comments=n:>
+autocmd! BufRead,BufNewFile *.mkd,*.markdown setfiletype mkd |
+      \set ai formatoptions=tcroqn2 comments=n:>
 
 autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
-au BufRead,BufNewFile *.vala,*.vapi setfiletype vala
+autocmd BufRead,BufNewFile *.vala,*.vapi setfiletype vala
 let vala_comment_strings = 1
 
 " Turn on spell checking for text files by default.
@@ -190,8 +194,8 @@ else " windows and unix are identical
   " Visual mode without the +virtualedit feature.  They are pasted as if they
   " were characterwise instead.
   " Uses the paste.vim autoload script.
-  exe 'inoremap <script> <C-V>' paste#paste_cmd['i']
-  exe 'vnoremap <script> <C-V>' paste#paste_cmd['v']
+  exec 'inoremap <script> <C-V>' paste#paste_cmd['i']
+  exec 'vnoremap <script> <C-V>' paste#paste_cmd['v']
 
   " Use ctrl-q/ctrl-e to do what ctrl-v used to do
   " (ctrl-q is reserved in linux terms)
@@ -210,7 +214,7 @@ function! HighlightTooLongLines()
     let longlines = matchadd('RightMargin', '\%>'.&textwidth.'v.\+')
   endif
 endfunction
-au BufEnter * call HighlightTooLongLines()
+autocmd BufEnter * call HighlightTooLongLines()
 
 " Highlight trailing whitespace in red and strip it on buffer write.
 highlight ExtraWhitespace ctermbg=red guibg=red
@@ -238,7 +242,7 @@ map <leader>b :FufBuffer<CR>
 map <leader>f :FufFile<CR>
 map <leader>F :FufFileWithCurrentBufferDir<CR>
 nmap <silent> <leader>n :silent :nohlsearch<CR>
-map <leader>n :execute 'NERDTreeToggle ' . getcwd()<CR>
+map <leader>n :exec 'NERDTreeToggle ' . getcwd()<CR>
 " ,s to turn on/off show whitespace
 nmap <silent> <leader>s :set nolist!<CR>
 " Opening new files
