@@ -1,7 +1,7 @@
 " First, clear all autocommands, in case this file is sourced twice
 autocmd!
 
-" Pathogen, front and center
+" Start with some pathogen, please!
 call pathogen#infect()
 
 " Check for mac, which is unix + uname returns "Darwin"
@@ -95,9 +95,15 @@ set tabstop=2
 set softtabstop=2
 autocmd FileType make set noexpandtab
 
+" Split below and to the right
+set splitright
+set splitbelow
+
 " Default textwidth is 80, but let some be a bit wider
 set textwidth=80
 autocmd BufNewFile,BufRead *.vimrc setlocal textwidth=120
+autocmd BufNewFile,BufRead *.log setlocal textwidth=9999
+autocmd BufNewFile,BufRead *.txt setlocal textwidth=9999
 
 " Turn on the lower ruler (mode, cursor position, file percentage)
 set ruler
@@ -116,13 +122,8 @@ set foldlevel=100
 " window.
 set switchbuf=usetab,newtab
 
-" For FuzzyFinder
-let g:fuzzy_ceiling= 50000
-let g:fuzzy_ignore = "objc/*, obj1c/*, objr/*, obj1r/*, .git/*"
-let g:fuzzy_matching_limit = 70
-" Flip open and open-in-tab for fuzzy finder
-let g:fuf_keyOpen = '<C-l>'
-let g:fuf_keyOpenTabpage = '<CR>'
+" Make ctags look for tagfiles in all directories, up to the root directory
+set tags=./tags;/
 
 """""""""""""""""""""""""""""""""""
 """ Filetype-specific settings
@@ -133,9 +134,6 @@ autocmd! BufRead,BufNewFile *.mkd,*.markdown setfiletype mkd |
 autocmd BufRead *.vala,*.vapi set efm=%f:%l.%c-%[%^:]%#:\ %t%[%^:]%#:\ %m
 autocmd BufRead,BufNewFile *.vala,*.vapi setfiletype vala
 let vala_comment_strings = 1
-
-" Turn on spell checking for text files by default.
-autocmd BufRead,BufNewFile *.txt,*.text setlocal spell spelllang=en_us
 
 """""""""""""""""""""""""""""""""""
 """ Helpful functions
@@ -165,15 +163,17 @@ function! MarkdownCurrentDirectory()
 endfunction
 
 "" Open .cc, .h., and _unittest.cc of the current cpp file
-function! GoToRelatedFile(extension)
+function! GoToRelatedFile(cmd, extension)
   let l:filename = expand("%:r")
   if (l:filename =~ "_unittest$")
     let l:file = substitute(l:filename, "_unittest$", "", "") . a:extension
+  elseif (l:filename =~ "_test$")
+    let l:file = substitute(l:filename, "_test$", "", "") . a:extension
   else
     let l:file = l:filename . a:extension
   endif
   " TODO: Switch to existing tab, if one is open
-  exec "tabe " . l:file
+  exec a:cmd . " " . l:file
 endfunction
 
 """""""""""""""""""""""""""""""""""
@@ -217,13 +217,12 @@ endfunction
 autocmd BufEnter * call HighlightTooLongLines()
 
 " Highlight trailing whitespace in red and strip it on buffer write.
-highlight ExtraWhitespace ctermbg=red guibg=red
-autocmd ColorScheme * highlight ExtraWhitespace ctermbg=red guibg=red
-autocmd BufWinEnter * let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
-autocmd InsertEnter * call matchdelete(b:wsmatch) |
-      \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+\%#\@<!$')
-autocmd InsertLeave * call matchdelete(b:wsmatch) |
-      \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
+"autocmd BufWinEnter * highlight ExtraWhitespace ctermbg=red guibg=red |
+"      \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
+"autocmd InsertEnter * call matchdelete(b:wsmatch) |
+"      \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+\%#\@<!$')
+"autocmd InsertLeave * call matchdelete(b:wsmatch) |
+"      \let b:wsmatch = matchadd('ExtraWhitespace', '\s\+$')
 
 " Strip trailing whitespace on save
 fun! <SID>StripTrailingWhitespaces()
@@ -238,9 +237,11 @@ autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 """ Keybindings (<leader> shortcuts)
 """""""""""""""""""""""""""""""""""
 
-map <leader>b :FufBuffer<CR>
-map <leader>f :FufFile<CR>
-map <leader>F :FufFileWithCurrentBufferDir<CR>
+" Open tag under cursor in new tab.
+map <C-\> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
+map <M-Left> <C-T>
+map <M-Right> <C-]>
+
 nmap <silent> <leader>n :silent :nohlsearch<CR>
 map <leader>n :exec 'NERDTreeToggle ' . getcwd()<CR>
 " ,s to turn on/off show whitespace
@@ -257,13 +258,22 @@ nmap <leader>t :TagbarToggle<CR>
 nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
 
 " GoToRelatedFile for cpp files
-autocmd FileType cpp nnoremap <leader>h :call GoToRelatedFile(".h")<CR>
-autocmd FileType cpp nnoremap <leader>c :call GoToRelatedFile(".cc")<CR>
-autocmd FileType cpp nnoremap <leader>u :call GoToRelatedFile("_unittest.cc")<CR>
+autocmd FileType cpp nnoremap <leader>h :call GoToRelatedFile("tabe", ".h")<CR>
+autocmd FileType cpp nnoremap <leader>c :call GoToRelatedFile("tabe", ".cc")<CR>
+autocmd FileType cpp nnoremap <leader>u :call GoToRelatedFile("tabe", "_unittest.cc")<CR>
+autocmd FileType cpp nnoremap <leader>H :call GoToRelatedFile("vs", ".h")<CR>
+autocmd FileType cpp nnoremap <leader>C :call GoToRelatedFile("vs", ".cc")<CR>
+autocmd FileType cpp nnoremap <leader>U :call GoToRelatedFile("vs", "_unittest.cc")<CR>
+" GoToRelatedFile for python files
+autocmd FileType python nnoremap <leader>u :call GoToRelatedFile("tabe", "_test.py")<CR>
+autocmd FileType python nnoremap <leader>c :call GoToRelatedFile("tabe", ".py")<CR>
+" GoToRelatedFile for Javascript files
+autocmd FileType javascript nnoremap <leader>u :call GoToRelatedFile("tabe", "_test.html")<CR>
 
 " Ignore annoying typos
 command! Q q
 command! Wq wq
+command! WQ wq
 
 """""""""""""""""""""""""""""""""""
 """ Load machine-specific config
