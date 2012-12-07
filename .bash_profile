@@ -29,7 +29,7 @@ alias gitoff='source ~/bin/normalprompt.sh'
 
 # Show on the first hit of tab, even if it is ambiguous, instead
 # of making me hit tab twice
-bind "set show-all-if-ambiguous on" 
+bind "set show-all-if-ambiguous on"
 # Ignore case on completion matches
 bind "set completion-ignore-case on"
 
