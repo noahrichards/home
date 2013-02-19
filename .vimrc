@@ -103,7 +103,9 @@ set splitbelow
 set textwidth=80
 autocmd BufNewFile,BufRead *.vimrc setlocal textwidth=120
 autocmd BufNewFile,BufRead *.log setlocal textwidth=9999
+autocmd BufNewFile,BufRead *.diff setlocal textwidth=9999
 autocmd BufNewFile,BufRead *.txt setlocal textwidth=9999
+autocmd BufNewFile,BufRead *.wxs setlocal textwidth=9999
 
 " Turn on the lower ruler (mode, cursor position, file percentage)
 set ruler
@@ -234,8 +236,13 @@ endfun
 autocmd BufWritePre * :call <SID>StripTrailingWhitespaces()
 
 """""""""""""""""""""""""""""""""""
-""" Keybindings (<leader> shortcuts)
+""" Keybindings
 """""""""""""""""""""""""""""""""""
+
+" F7/F8 to previous/next error
+map <F7> :cN<CR>
+map <F8> :cn<CR>
+map <F9> :cc<CR>
 
 " Open tag under cursor in new tab.
 map <C-\> :tab split<CR>:exec("tag ".expand("<cword>"))<CR>
@@ -248,9 +255,9 @@ map <leader>n :exec 'NERDTreeToggle ' . getcwd()<CR>
 nmap <silent> <leader>s :set nolist!<CR>
 " Opening new files
 if has("unix")
-  map <leader>o :tabe <C-R>=simplify(expand("%:h") . "/") <CR>
+  map <leader>o :tabe <C-R>=simplify(expand("%:h") . "/")<CR><C-L>
 else
-  map <leader>o :tabe <C-R>=simplify(expand("%:h") . "\\") <CR>
+  map <leader>o :tabe <C-R>=simplify(expand("%:h") . "\\")<CR><C-L>
 endif
 nmap <leader>m :call MarkdownCurrentFile()<CR>
 nmap <leader>M :call MarkdownCurrentDirectory()<CR>
@@ -261,9 +268,6 @@ nmap <silent> <leader>w :setlocal spell spelllang=en_us<CR>
 autocmd FileType cpp nnoremap <leader>h :call GoToRelatedFile("tabe", ".h")<CR>
 autocmd FileType cpp nnoremap <leader>c :call GoToRelatedFile("tabe", ".cc")<CR>
 autocmd FileType cpp nnoremap <leader>u :call GoToRelatedFile("tabe", "_unittest.cc")<CR>
-autocmd FileType cpp nnoremap <leader>H :call GoToRelatedFile("vs", ".h")<CR>
-autocmd FileType cpp nnoremap <leader>C :call GoToRelatedFile("vs", ".cc")<CR>
-autocmd FileType cpp nnoremap <leader>U :call GoToRelatedFile("vs", "_unittest.cc")<CR>
 " GoToRelatedFile for python files
 autocmd FileType python nnoremap <leader>u :call GoToRelatedFile("tabe", "_test.py")<CR>
 autocmd FileType python nnoremap <leader>c :call GoToRelatedFile("tabe", ".py")<CR>
